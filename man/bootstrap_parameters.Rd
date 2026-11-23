@@ -7,7 +7,8 @@
 bootstrap_parameters(x,nboot,upper,lower,...)
 }
 \arguments{
-\item{x}{an object of class "\code{litfit}"}
+\item{x}{an object of class "\code{litfit}" (from \code{\link{fit_litter}}) or
+"\code{elementfit}" (from \code{\link{fit_element}})}
 
 \item{nboot}{number of bootstrap replications}
 
@@ -18,16 +19,20 @@ bootstrap_parameters(x,nboot,upper,lower,...)
 \item{...}{passed to \code{\link{optim}}}
 }
 \value{
-litfit_bootstrap object
+a \code{litfit_bootstrap} object: a matrix with one row per bootstrap
+replicate and one column per parameter, plus derived quantities: the implied
+steady state for a \code{litfit}, or the peak element remaining and the mass
+remaining at the peak for an \code{elementfit}.
+Failed replicates are recorded as \code{NA}.
 }
 \description{
 Create a bootstrap distribution of a particular coefficient from a model fit
 }
 \examples{
-fit <- fit_litter(time=pineneedles$Year,
-mass.remaining=pineneedles$Mass.remaining, model='neg.exp', iters=100)
+fit <- fit_litter(
+  time = pineneedles$Year,
+  mass.remaining = pineneedles$Mass.remaining, model = "neg.exp", iters = 100
+)
 boot1 <- bootstrap_parameters(fit, nboot = 500)
-
-
 
 }

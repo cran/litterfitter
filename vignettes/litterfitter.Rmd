@@ -20,15 +20,18 @@ This vignette provides an overview of the main functions in `litterfitter`
 
 ```{r setup}
 library(litterfitter)
+set.seed(1)
 ```
 
-At the moment there is one key function which is `fit_litter` which can fit 6 different types of decomposition trajectories. Note that the fitted object is a `litfit` object
+The key function is `fit_litter`, which can fit 6 different types of decomposition trajectories: `neg.exp`, `weibull`, `discrete.parallel`, `discrete.series`, `cont.quality` and `neg.exp.limit` (see `?fit_litter`). The fitted object is a `litfit` object
 
 ```{R,results="hide",warning=FALSE,message = FALSE}
-fit <- fit_litter(time=c(0,1,2,3,4,5,6),
-                  mass.remaining =c(1,0.9,1.01,0.4,0.6,0.2,0.01),
-                  model="weibull",
-                  iters=500)
+fit <- fit_litter(
+  time = c(0, 1, 2, 3, 4, 5, 6),
+  mass.remaining = c(1, 0.9, 1.01, 0.4, 0.6, 0.2, 0.01),
+  model = "weibull",
+  iters = 500
+)
 
 class(fit)
 ```
@@ -36,28 +39,159 @@ class(fit)
 You can visually compare the fits of different non-linear equations with the `plot_multiple_fits` function:
 
 ```{R,fig.height=6,results='hide',fig.keep=TRUE,warning=FALSE,message = FALSE}
-plot_multiple_fits(time=c(0,1,2,3,4,5,6),
-                   mass.remaining=c(1,0.9,1.01,0.4,0.6,0.2,0.01),
-                   model=c("neg.exp","weibull"),
-                   iters=500)
+plot_multiple_fits(
+  time = c(0, 1, 2, 3, 4, 5, 6),
+  mass.remaining = c(1, 0.9, 1.01, 0.4, 0.6, 0.2, 0.01),
+  model = c("neg.exp", "weibull"),
+  iters = 500
+)
 ```
 
 Calling `plot` on a `litfit` object will show you the data, the curve fit, and even the equation, with the estimated coefficients:
 
 ```{R,fig.keep=TRUE}
-   plot(fit)
+plot(fit)
 ```
 
 The summary of a `litfit` object will show you some of the summary statistics for the fit.
 
 ```{R,echo=FALSE,fig.keep=TRUE}
-   summary(fit)
+summary(fit)
 ```
 
 From the `litfit` object you can then see the uncertainty in the parameter estimate by bootstrapping
 
-```{R,echo=FALSE,fig.keep=TRUE}
-   post<-bootstrap_parameters(fit)
-   plot(post)
+```{R,fig.keep=TRUE,warning=FALSE}
+post <- bootstrap_parameters(fit, nboot = 500)
+plot(post)
+```
+
+and summarise the bootstrap distribution of each parameter (and of the implied steady state) as a mean with quantiles:
+
+```{R}
+summary(post)
+```
+
+### Working with fitted models
+
+Printing a `litfit` object gives the fitted parameters and information criteria, and the standard extractor functions work as you would expect:
+
+```{R}
+fit
+coef(fit)
+residuals(fit)
+predict(fit, newdata = c(7, 8, 9))
+```
+
+Two quantities that are often of ecological interest can be derived from any fit: the time until a given proportion of mass remains, and the implied steady-state litter mass (in units of yearly input):
+
+```{R}
+time_to_prop_mass_remaining(fit, threshold.mass = 0.5)
+steady_state(fit)
+```
+
+### Comparing models
+
+`fit_litter_all()` fits several models to the same data and returns them together. `glance()` then gives a model-comparison table, sorted by AICc, with the difference from the best model (`delta_AICc`). Here we use the `pineneedles` data that ships with the package:
+
+```{R,warning=FALSE}
+data(pineneedles)
+fits <- fit_litter_all(
+  time = pineneedles$Year,
+  mass.remaining = pineneedles$Mass.remaining,
+  models = c("neg.exp", "weibull", "discrete.parallel", "cont.quality"),
+  iters = 500
+)
+fits
+glance(fits)[, c("fit", "nparams", "logLik", "AICc", "delta_AICc", "time_to_50")]
+```
+
+Because `litfit` objects have a `logLik` method, the base R functions `AIC()` and `BIC()` also work, e.g. `AIC(fits$neg.exp, fits$weibull)`. `tidy(fits)` gives the parameter estimates of every model in one table.
+
+Note that with only a handful of observations the more complex models are often poorly identified; see Cornwell & Weedon (2013) for a discussion.
+
+### Plotting
+
+Every fitted object has a `plot()` method using base graphics. Supplying a bootstrap adds a pointwise uncertainty band, and a `litfit_list` plots all models together with a table of information criteria:
+
+```{R, fig.height = 4, warning = FALSE}
+boot_neg <- bootstrap_parameters(fits$neg.exp, nboot = 500)
+plot(fits$neg.exp, boot = boot_neg)
+plot(fits)
+```
+
+`plot()` on a bootstrap shows its distributions; use `coef.index = "all"` to see every parameter and derived quantity:
+
+```{R, fig.height = 5}
+plot(boot_neg, coef.index = "all")
+```
+
+If ggplot2 is installed, `autoplot()` gives the same plots as ggplot objects, which can be customised with the usual layers, scales and themes:
+
+```{R, eval = requireNamespace("ggplot2", quietly = TRUE), fig.height = 4}
+library(ggplot2)
+autoplot(fits$neg.exp, boot = boot_neg)
+autoplot(fits) + theme_bw()
+autoplot(boot_neg)
+```
+
+### Tidy output and custom plots
+
+`tidy()`, `glance()` and `augment()` return fits as data frames, following the conventions of the [broom](https://broom.tidymodels.org/) package. `augment()` with `newdata` gives predictions on a grid of times, and with a bootstrap it adds a pointwise uncertainty band (`.lower`, `.upper`):
+
+```{R}
+best <- fits$neg.exp
+boot <- bootstrap_parameters(best, nboot = 500)
+tidy(best, boot = boot)
+grid <- augment(best, newdata = seq(0, 5, length.out = 100), boot = boot)
+head(grid)
+```
+
+These data frames make it straightforward to build your own figures, for example with ggplot2:
+
+```{R, eval = requireNamespace("ggplot2", quietly = TRUE), fig.height = 4}
+library(ggplot2)
+ggplot(grid, aes(time)) +
+  geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = "grey85") +
+  geom_line(aes(y = .fitted)) +
+  geom_point(data = augment(best), aes(y = mass)) +
+  labs(x = "Time (years)", y = "Proportion mass remaining")
+```
+
+To compare the curves of several models, use `augment()` on the `litfit_list`, which stacks the predictions with a `fit` column to map to colour:
+
+```{R, eval = requireNamespace("ggplot2", quietly = TRUE), fig.height = 4}
+curves <- augment(fits, newdata = seq(0, 5, length.out = 100))
+ggplot(curves, aes(time, .fitted, colour = fit)) +
+  geom_line() +
+  geom_point(data = augment(best), aes(y = mass), colour = "black") +
+  labs(x = "Time (years)", y = "Proportion mass remaining", colour = "Model")
+```
+
+### Element (nutrient) dynamics
+
+`fit_element()` fits how the proportion of an element remaining (for example nitrogen, N/N~0~) changes as litter mass is lost. Elements are often immobilised early in decomposition (element remaining rises above 1) and released later. The `import.model` of Parton et al. (2007) describes this pattern:
+
+```{R}
+efit <- fit_element(
+  mass.remaining = pineneedles$Mass.remaining,
+  element.remaining = c(1.1, 1.2, 1.3, 1, 0.8, 0.6),
+  iters = 500, quiet = TRUE
+)
+efit
+```
+
+The plot shows mass remaining decreasing from left to right, so decomposition proceeds along the x axis; the dashed line marks the initial amount of the element:
+
+```{R, fig.height = 4}
+plot(efit)
+```
+
+`glance()` reports the peak element remaining and the mass remaining at which it occurs, and bootstrapping gives their uncertainty:
+
+```{R, warning = FALSE}
+glance(efit)[, c("model", "AICc", "peak_element", "mass_at_peak")]
+eboot <- bootstrap_parameters(efit, nboot = 500)
+summary(eboot)
 ```
 
