@@ -1,7 +1,7 @@
 Package: litterfitter
 Type: Package
 Title: Fits a Collection of Curves to Single-Cohort Decomposition Data
-Version: 0.3.0
+Version: 0.3.1
 Date: 2026-11-20
 Authors@R: 
     c(person(given = "Will",
@@ -35,11 +35,11 @@ BugReports: https://github.com/traitecoevo/litterfitter/issues
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2026-11-22 23:47:52 UTC; z3484779
+Packaged: 2026-11-24 02:01:45 UTC; z3484779
 Author: Will Cornwell [aut, cre] (ORCID:
     <https://orcid.org/0000-0003-4080-4073>),
   James Weedon [aut],
   Guofang Liu [ctb]
 Maintainer: Will Cornwell <wcornwell@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-11-23 00:20:02 UTC
+Date/Publication: 2026-11-25 08:20:08 UTC

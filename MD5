@@ -1,7 +1,7 @@
-e40a463225d84d53dc6e22540e7d6940 *DESCRIPTION
+e31d4e6481d02113bd53e31b0f4e591b *DESCRIPTION
 abed78c161240512c0131a54690c396f *LICENSE
 b09e7d6209db7170beb8b585ec2bcd14 *NAMESPACE
-2c186a115aa6c07b0250cfa77b810c6a *NEWS.md
+7e891b86460f27193c3f6ccdf48c4030 *NEWS.md
 1ee0c5a703c81f1a0d578d118a44bf05 *R/autoplot.R
 7c94ef765edde2f30eef3d20aa08fc82 *R/bootstrap.R
 baa7ff8ffe54d706e16ba652229adc76 *R/element.R
@@ -68,10 +68,10 @@ cb426a5a86ca7c463fb07510a3b528f2 *tests/testthat/_snaps/plots/plot-bootstrap-all
 293be7bbefd8bb0fc21ac43d401c189b *tests/testthat/_snaps/plots/plot-litfit.svg
 6c0d4394242a3b53e5736d831d330aaf *tests/testthat/helper-litterfitter.R
 6d1a45d50f7cad37e9b8144d90eb62f9 *tests/testthat/test-autoplot.R
-7685f2977717269ab073a2f8e29587df *tests/testthat/test-bootstrap.R
+777e4c0c793689d3e9fd79e832726894 *tests/testthat/test-bootstrap.R
 aa12d0c7803e830ecc33585384bafc63 *tests/testthat/test-derived.R
 86388721da443a3e001969b60d1b8d5f *tests/testthat/test-element.R
-2ed18b7f05c2824c71acffb24ce78de5 *tests/testthat/test-gradients.R
+5fb2c6f34117d51801e65ad57810d49c *tests/testthat/test-gradients.R
 f09e5d625970d93894793bc7ca9f0e36 *tests/testthat/test-inputs.R
 ef8034a875d0b7285971a0fbee46cf10 *tests/testthat/test-litfit-list.R
 94a4b92d3c20fd39fc03b2fce61bfad7 *tests/testthat/test-methods.R
